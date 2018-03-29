@@ -25,16 +25,17 @@ func (m *HttpService) Run() error {
 	return nil
 }
 
-func NewHttpService(opts ...ServiceOption) *HttpService {
+func NewHttpService(opts ...ServiceOption) (*HttpService, error) {
 
 	service := &HttpService{
 		engine: gin.New(),
 	}
-	service.init()
 
 	for _, opt := range opts {
 		opt(service)
 	}
 
-	return service
+	service.init()
+
+	return service, nil
 }

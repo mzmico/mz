@@ -60,7 +60,7 @@ func AddRpcServer(handler AddRpcServerHandler) {
 	rpcAddServerHandlers = append(rpcAddServerHandlers, handler)
 }
 
-func NewRpcService(opts ...ServiceOption) *RpcService {
+func NewRpcService(opts ...ServiceOption) (*RpcService, error) {
 
 	service := &RpcService{}
 
@@ -70,5 +70,5 @@ func NewRpcService(opts ...ServiceOption) *RpcService {
 		opt(service)
 	}
 
-	return service
+	return service, nil
 }
