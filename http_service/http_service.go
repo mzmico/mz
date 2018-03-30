@@ -1,20 +1,17 @@
 package http_service
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/gin-gonic/gin"
 	"github.com/mzmico/mz"
-	"github.com/mzmico/protobuf"
 	"github.com/mzmico/toolkit/state"
 )
 
 var (
-	service *mz.HttpService
+	service  *mz.HttpService
+	handlers []func(engine *gin.Engine)
 )
 
-func Default(options ...mz.ServiceOption) *mz.HttpService {
+func Default(options ...mz.ServiceOption) (*mz.HttpService, error) {
 
 	if service == nil {
 		var (
@@ -24,11 +21,14 @@ func Default(options ...mz.ServiceOption) *mz.HttpService {
 		service, err = mz.NewHttpService(options...)
 
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(-1)
+			return nil, err
 		}
 
-		return service
+		for _, handler := range handlers {
+			handler(service.Engine())
+		}
+
+		return service, nil
 
 	} else {
 		panic("http_service already call Default")
@@ -57,12 +57,11 @@ func httpHandler(handler Handler) func(context *gin.Context) {
 		state := state.NewHttpState(service, context)
 
 		if state.GetLastError() != nil {
+
 			state.Error(
-				int(protobuf.State_ArgumentError),
-				protobuf.State_ArgumentError.String(),
+				1000,
 				state.GetLastError(),
 			)
-
 			return
 		}
 
@@ -71,17 +70,30 @@ func httpHandler(handler Handler) func(context *gin.Context) {
 }
 
 func GET(relativePath string, handler Handler) {
-	engine().GET(relativePath, httpHandler(handler))
+
+	handlers = append(handlers, func(engine *gin.Engine) {
+		engine.GET(relativePath, httpHandler(handler))
+	})
+
 }
 
 func POST(relativePath string, handler Handler) {
-	engine().POST(relativePath, httpHandler(handler))
+	handlers = append(handlers, func(engine *gin.Engine) {
+		engine.POST(relativePath, httpHandler(handler))
+	})
+
 }
 
 func DELETE(relativePath string, handler Handler) {
-	engine().DELETE(relativePath, httpHandler(handler))
+	handlers = append(handlers, func(engine *gin.Engine) {
+		engine.DELETE(relativePath, httpHandler(handler))
+	})
+
 }
 
 func PUT(relativePath string, handler Handler) {
-	engine().DELETE(relativePath, httpHandler(handler))
+	handlers = append(handlers, func(engine *gin.Engine) {
+		engine.PUT(relativePath, httpHandler(handler))
+	})
+
 }

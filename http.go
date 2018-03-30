@@ -35,7 +35,11 @@ func NewHttpService(opts ...ServiceOption) (*HttpService, error) {
 		opt(service)
 	}
 
-	service.init()
+	err := service.init()
+
+	if err != nil {
+		return nil, err
+	}
 
 	return service, nil
 }

@@ -64,7 +64,11 @@ func NewRpcService(opts ...ServiceOption) (*RpcService, error) {
 
 	service := &RpcService{}
 
-	service.init()
+	err := service.init()
+
+	if err != nil {
+		return nil, err
+	}
 
 	for _, opt := range opts {
 		opt(service)

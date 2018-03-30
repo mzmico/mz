@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/mzmico/toolkit/balance"
 	"github.com/mzmico/toolkit/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
@@ -20,6 +22,14 @@ type IService interface {
 
 	setName(name string)
 	setAddress(address string)
+}
+
+type debugFormatter struct {
+}
+
+func (m *debugFormatter) Format(e *logrus.Entry) ([]byte, error) {
+
+	return []byte(e.Message), nil
 }
 
 type Service struct {
@@ -54,7 +64,7 @@ func (m *Service) init() error {
 	err := viper.ReadInConfig()
 
 	if err != nil {
-		errors.By(err)
+		return errors.By(err)
 	}
 
 	if len(m.name) == 0 {
@@ -75,6 +85,17 @@ func (m *Service) init() error {
 		}
 	}
 
+	m.balance, err = balance.NewDNSBalance(viper.GetViper())
+
+	if err != nil {
+		return err
+	}
+
+	if runtime.GOOS == "darwin" {
+		logrus.SetFormatter(
+			&debugFormatter{},
+		)
+	}
 	return nil
 }
 
