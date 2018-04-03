@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/mzmico/toolkit/balance"
+	"github.com/mzmico/toolkit/db"
 	"github.com/mzmico/toolkit/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -96,6 +97,13 @@ func (m *Service) init() error {
 			&debugFormatter{},
 		)
 	}
+
+	err = db.Load()
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
